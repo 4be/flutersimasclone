@@ -1,0 +1,64 @@
+stages:
+  - lint
+  - test
+#  - build
+#  - deploy
+
+.flutter_before_script: &flutter_before_script |-
+  export PATH=$PATH:/sdk/android-sdk-linux/platform-tools/
+  flutter pub get
+
+image: cirrusci/flutter:stable
+
+before_script:
+  - *flutter_before_script
+
+variables:
+  APP_NAME: "Simas"
+
+Lint:
+  stage: lint
+  script:
+    - flutter analyze
+  only:
+    - merge_requests
+
+Test:
+  stage: test
+  script:
+    - flutter test
+  only:
+    - merge_requests
+
+#Build:
+#  stage: build
+#  script:
+#    - echo $CI_PIPELINE_IID
+#    - mkdir symbols
+#    - flutter build apk --release --build-name=$APP_NAME --build-number=$CI_PIPELINE_IID
+#  artifacts:
+#    paths:
+#      - build/app/outputs/apk/release
+#      - symbols
+#    expire_in: 1 hour
+#  only:
+#    - staging
+#
+#Deploy:
+#  dependencies:
+#    - Build
+#  stage: deploy
+#  only:
+#    refs:
+#      - staging
+#  before_script:
+#    - apt-get update && apt-get install gnupg -y
+#    - curl -sL https://deb.nodesource.com/setup_16.x | bash - && apt-get install -y nodejs
+#    - npm install --global appcenter-cli
+#  script:
+#    - appcenter
+#    - echo "$API_TOKEN"
+#    - appcenter login --token "$API_TOKEN"
+#    - appcenter distribute release --group Collaborators --file build/app/outputs/apk/release/app-release.apk --release-notes 'New Release $CI_PIPELINE_IID' --app $APPCENTER_APP_NAME_STAGING --token $API_TOKEN --quiet
+#  environment:
+#    name: staging
